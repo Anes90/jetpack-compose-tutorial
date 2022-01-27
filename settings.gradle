@@ -9,3 +9,4 @@ dependencyResolutionManagement {
 rootProject.name = "Jetpack Compose Tutorial"
 include ':app'
 include ':jetpack-compose-basics-codelab'
+include ':layoutsjetpackcompose'
