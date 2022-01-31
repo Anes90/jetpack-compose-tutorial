@@ -54,9 +54,9 @@ fun TodoScreen(
         val enableTopSection = currentlyEditing == null
         // add TodoItemInputBackground and TodoItem at the top of TodoScreen
         TodoItemInputBackground(elevate = true, modifier = Modifier.fillMaxWidth()) {
-            if(enableTopSection) {
+            if (enableTopSection) {
                 TodoItemEntryInput(onItemComplete = onAddItem)
-            }else{
+            } else {
                 Text(
                     "Editing item",
                     style = MaterialTheme.typography.h6,
@@ -142,23 +142,27 @@ fun TodoInputTextField(text: String, onTextChange: (String) -> Unit, modifier: M
 }
 
 @Composable
-fun TodoItemEntryInput(onItemComplete: (TodoItem) -> Unit) {
-    val (text, setText) = remember { mutableStateOf("") }
-    val (icon, setIcon) = remember { mutableStateOf(TodoIcon.Default) }
-    val iconsVisible = text.isNotBlank()
+fun TodoItemEntryInput(onItemComplete: (TodoItem) -> Unit, buttonText: String = "Add") {
+    val (text, onTextChange) = remember { mutableStateOf("") }
+    val (icon, onIconChange) = remember { mutableStateOf(TodoIcon.Default) }
+
     val submit = {
-        onItemComplete(TodoItem(text, icon))
-        setIcon(TodoIcon.Default)
-        setText("")
+        if(text.isNotBlank()) {
+            onItemComplete(TodoItem(text, icon))
+            onTextChange("")
+            onIconChange(TodoIcon.Default)
+        }
     }
     TodoItemInput(
         text = text,
-        onTextChange = setText,
+        onTextChange = onTextChange,
         icon = icon,
-        onIconChange = setIcon,
+        onIconChange = onIconChange,
         submit = submit,
-        iconsVisible = iconsVisible
-    )
+        iconsVisible = text.isNotBlank()
+    ){
+        TodoEditButton(onClick = submit, text = buttonText, enabled = text.isNotBlank())
+    }
 }
 
 @Composable
@@ -168,13 +172,15 @@ fun TodoItemInput(
     icon: TodoIcon,
     onIconChange: (TodoIcon) -> Unit,
     submit: () -> Unit,
-    iconsVisible: Boolean
+    iconsVisible: Boolean,
+    buttonSlot: @Composable () -> Unit
 ) {
     Column {
         Row(
             Modifier
                 .padding(horizontal = 16.dp)
                 .padding(top = 16.dp)
+                .height(IntrinsicSize.Min)
         ) {
             TodoInputText(
                 text = text,
@@ -184,12 +190,14 @@ fun TodoItemInput(
                     .padding(end = 8.dp),
                 onImeAction = submit // pass the submit callback to TodoInputText
             )
-            TodoEditButton(
+            /*TodoEditButton(
                 onClick = submit, // pass the submit callback to TodoEditButton
                 text = "Add",
                 modifier = Modifier.align(Alignment.CenterVertically),
                 enabled = text.isNotBlank()
-            )
+            )*/
+            Spacer(modifier = Modifier.width(8.dp))
+            Box(Modifier.align(Alignment.CenterVertically)) { buttonSlot() }
         }
         if (iconsVisible) {
             AnimatedIconRow(icon, onIconChange, Modifier.padding(top = 8.dp))
@@ -219,15 +227,36 @@ fun TodoItemInlineEditor(
     item: TodoItem,
     onEditItemChange: (TodoItem) -> Unit,
     onEditDone: () -> Unit,
-    onRemoveItem: (TodoItem) -> Unit
-) = TodoItemInput(
-    text = item.task,
-    onTextChange = { onEditItemChange(item.copy(task = it)) },
-    icon = item.icon,
-    onIconChange = { onEditItemChange(item.copy(icon = it)) },
-    submit = onEditDone,
-    iconsVisible = true
-)
+    onRemoveItem: () -> Unit
+) {
+    TodoItemInput(
+        text = item.task,
+        onTextChange = { onEditItemChange(item.copy(task = it)) },
+        icon = item.icon,
+        onIconChange = { onEditItemChange(item.copy(icon = it)) },
+        submit = onEditDone,
+        iconsVisible = true,
+        buttonSlot = {
+            Row {
+                val shrinkButtons = Modifier.widthIn(20.dp)
+                TextButton(onClick = onEditDone, modifier = shrinkButtons) {
+                    Text(
+                        text = "\uD83D\uDCBE", // floppy disk
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.width(30.dp)
+                    )
+                }
+                TextButton(onClick = onRemoveItem, modifier = shrinkButtons) {
+                    Text(
+                        text = "❌",
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.width(30.dp)
+                    )
+                }
+            }
+        }
+    )
+}
 
 private fun randomTint(): Float {
     return Random.nextFloat().coerceIn(0.3f, 0.9f)
