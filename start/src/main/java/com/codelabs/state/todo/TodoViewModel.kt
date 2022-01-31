@@ -52,7 +52,7 @@ class TodoViewModel : ViewModel() {
     }
 
     // event: onEditItemSelected
-    fun onEditSelected(item: TodoItem){
+    fun onEditItemSelected(item: TodoItem){
         currentEditPosition = todoItems.indexOf(item)
     }
 
