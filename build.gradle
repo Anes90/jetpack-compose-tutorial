@@ -5,6 +5,7 @@ buildscript {
         kotlin_version = '1.5.31'
         activity_compose_version = '1.4.0'
         viewmodel_compose_version = '1.0.0-alpha07'
+        ktlint_version = '0.42.1'
     }
     repositories {
         google()
@@ -16,6 +17,15 @@ buildscript {
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+        kotlinOptions {
+            // Opt-in to experimental compose APIs
+            freeCompilerArgs += '-Xopt-in=kotlin.RequiresOptIn'
+        }
     }
 }
 
